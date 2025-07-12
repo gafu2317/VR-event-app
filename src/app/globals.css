@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #68D391; /* green-400 */
+}
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #68D391; /* green-400 */
+}
+
+/* スクロールを禁止し、画面全体にコンテンツをフィットさせるためのスタイル */
+html,
+body {
+  height: 100vh; /* 画面の高さに合わせる */
+  overflow: hidden; /* はみ出したコンテンツを非表示にし、スクロールを無効化 */
+}
+
