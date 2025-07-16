@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Booking, Schedule, TimeSlot } from '@/lib/types';
+import { bookingService } from '@/lib/firebase';
 
 interface BookingContextType {
   bookings: Booking[];
@@ -11,6 +12,8 @@ interface BookingContextType {
   updateBookings: (newBookings: Booking[]) => void;
   updateScheduleWithBookings: (bookings: Booking[]) => void;
   refreshBookings: () => Promise<void>;
+  createBooking: (bookerName: string, bookingTime: string) => Promise<void>;
+  cancelBooking: (bookerName: string, bookingTime: string) => Promise<boolean>;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -81,17 +84,67 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     setLoading(true);
     setError(null);
     try {
-      // この部分は後でfirebase.tsと連携します
       console.log('予約データを更新中...');
-      // const allBookings = await bookingService.getAll();
-      // updateBookings(allBookings);
-    } catch (err) {
-      setError('予約データの読み込みに失敗しました');
-      console.error(err);
+      const allBookings = await bookingService.getAll();
+      updateBookings(allBookings);
+    } catch (err: any) {
+      console.error('予約データの読み込みエラー:', err);
+      
+      // エラーメッセージを詳細に表示
+      if (err?.message?.includes('タイムアウト')) {
+        setError('サーバーの応答が遅すぎます。ネットワーク接続を確認してください。');
+      } else if (err?.message?.includes('permission')) {
+        setError('データベースへのアクセス権限がありません。');
+      } else {
+        setError('予約データの読み込みに失敗しました。Firebase設定を確認してください。');
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const createBooking = async (bookerName: string, bookingTime: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await bookingService.create(bookerName, bookingTime);
+      await refreshBookings(); // 作成後に最新データを取得
+    } catch (err: any) {
+      setError('予約の作成に失敗しました');
+      console.error(err);
+      throw err; // UIでエラーハンドリングするため再throw
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelBooking = async (bookerName: string, bookingTime: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const success = await bookingService.deleteByNameAndTime(bookerName, bookingTime);
+      if (success) {
+        await refreshBookings(); // キャンセル後に最新データを取得
+      }
+      return success;
+    } catch (err: any) {
+      setError('予約のキャンセルに失敗しました');
+      console.error(err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初期データ読み込み（遅延実行でUI表示を優先）
+  useEffect(() => {
+    // UIの初期表示を優先するため、少し遅延させる
+    const timer = setTimeout(() => {
+      refreshBookings();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const value: BookingContextType = {
     bookings,
@@ -101,6 +154,8 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     updateBookings,
     updateScheduleWithBookings,
     refreshBookings,
+    createBooking,
+    cancelBooking,
   };
 
   return (

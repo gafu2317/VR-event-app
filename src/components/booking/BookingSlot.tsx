@@ -20,8 +20,8 @@ export const BookingSlot: React.FC<BookingSlotProps> = ({
   const { time, dateTime, isBooked, bookerName } = slot;
 
   const handleClick = () => {
-    // 予約済みでなく、かつonClickハンドラが渡されている場合のみクリックを処理
-    if (!isBooked && onClick) {
+    // onClickハンドラが渡されている場合、予約済み・空き関係なくクリックを処理
+    if (onClick) {
       onClick(dateTime); // 正確な日時情報を渡す
     }
   };
@@ -41,9 +41,10 @@ export const BookingSlot: React.FC<BookingSlotProps> = ({
         rounded-md border-2 shadow-sm
         w-20 h-16 sm:w-20 sm:h-16 md:w-24 md:h-20 lg:w-32 lg:h-24
         transition-all duration-200 ease-in-out
+        cursor-pointer
         ${isBooked
-          ? 'bg-red-100 border-red-400 text-red-800' // 予約済みの場合のスタイル
-          : 'bg-green-100 border-green-400 text-green-800 cursor-pointer hover:bg-green-200 hover:shadow-md' // 空きの場合のスタイルとホバーエフェクト
+          ? 'bg-red-100 border-red-400 text-red-800 hover:bg-red-200 hover:shadow-md' // 予約済みの場合のスタイル
+          : 'bg-green-100 border-green-400 text-green-800 hover:bg-green-200 hover:shadow-md' // 空きの場合のスタイルとホバーエフェクト
         }
       `}
       onClick={handleClick}

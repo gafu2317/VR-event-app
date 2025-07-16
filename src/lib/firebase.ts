@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { Booking } from './types';
 
-// Firebase-�
+// Firebase設定
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -22,56 +22,109 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Firebase
+// デバッグ用：設定値を確認
+console.log('Firebase設定確認:', {
+  apiKey: firebaseConfig.apiKey ? '設定済み' : '未設定',
+  authDomain: firebaseConfig.authDomain ? '設定済み' : '未設定',
+  projectId: firebaseConfig.projectId ? '設定済み' : '未設定',
+  storageBucket: firebaseConfig.storageBucket ? '設定済み' : '未設定',
+  messagingSenderId: firebaseConfig.messagingSenderId ? '設定済み' : '未設定',
+  appId: firebaseConfig.appId ? '設定済み' : '未設定'
+});
+
+// Firebase初期化
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// �쯷���g
+// Firestoreキャッシュを有効化（パフォーマンス向上）
+import { enableNetwork, disableNetwork } from 'firebase/firestore';
+
+// 接続を事前に確立
+enableNetwork(db).catch(console.error);
+
+// コレクション参照
 export const bookingsCollection = collection(db, 'bookings');
 
-// ���ӹ
+// メモリキャッシュ（簡易実装）
+let cachedBookings: Booking[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 30000; // 30秒
+
+// 予約サービス
 export const bookingService = {
-  // h�����֗
+  // 全予約データを取得
   async getAll(): Promise<Booking[]> {
     try {
-      console.log('FirestoreK������֗-...');
-      const querySnapshot = await getDocs(bookingsCollection);
-      const bookings = querySnapshot.docs.map(doc => ({
+      console.log('Firestoreから予約データを取得中...');
+      
+      // キャッシュチェック
+      const now = Date.now();
+      if (cachedBookings && (now - cacheTimestamp) < CACHE_DURATION) {
+        console.log('キャッシュからデータを取得');
+        return cachedBookings;
+      }
+      
+      console.time('Firestore取得時間');
+      
+      // タイムアウト処理を追加
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('タイムアウト: 10秒以内に応答がありませんでした')), 10000);
+      });
+      
+      const querySnapshot = await Promise.race([
+        getDocs(bookingsCollection),
+        timeoutPromise
+      ]) as any;
+      
+      console.timeEnd('Firestore取得時間');
+      
+      const bookings = querySnapshot.docs.map((doc: any) => ({
         id: doc.id,
         bookerName: doc.data().bookerName,
         bookingTime: doc.data().bookingTime,
       } as Booking));
       
-      console.log('֗W_����:', bookings);
+      // キャッシュに保存
+      cachedBookings = bookings;
+      cacheTimestamp = now;
+      
+      console.log('取得した予約データ:', bookings);
       return bookings;
-    } catch (error) {
-      console.error('����n֗k1WW~W_:', error);
-      throw new Error('����n֗k1WW~W_');
+    } catch (error: any) {
+      console.error('予約データの取得に失敗しました:', error);
+      if (error?.message?.includes('タイムアウト')) {
+        throw new Error('サーバーの応答が遅すぎます。しばらくしてから再試行してください。');
+      }
+      throw new Error('予約データの取得に失敗しました');
     }
   },
 
-  // ����\
+  // 新規予約を作成
   async create(bookerName: string, bookingTime: string): Promise<string> {
     try {
-      console.log('����\-...', { bookerName, bookingTime });
+      console.log('新規予約を作成中...', { bookerName, bookingTime });
       const docRef = await addDoc(bookingsCollection, {
         bookerName,
         bookingTime,
         createdAt: Timestamp.now()
       });
       
-      console.log('�L\U�~W_:', docRef.id);
+      // キャッシュを無効化
+      cachedBookings = null;
+      cacheTimestamp = 0;
+      
+      console.log('予約が作成されました:', docRef.id);
       return docRef.id;
-    } catch (error) {
-      console.error('�n\k1WW~W_:', error);
-      throw new Error('�n\k1WW~W_');
+    } catch (error: any) {
+      console.error('予約の作成に失敗しました:', error);
+      throw new Error('予約の作成に失敗しました');
     }
   },
 
-  // �������hB�g"	
+  // 予約をキャンセル（予約者名と時間で検索）
   async deleteByNameAndTime(bookerName: string, bookingTime: string): Promise<boolean> {
     try {
-      console.log('������-...', { bookerName, bookingTime });
+      console.log('予約をキャンセル中...', { bookerName, bookingTime });
       const q = query(
         bookingsCollection,
         where('bookerName', '==', bookerName),
@@ -80,22 +133,26 @@ export const bookingService = {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        console.log('�����an�L�dK�~[�');
+        console.log('キャンセル対象の予約が見つかりません');
         return false;
       }
 
-      // pn�L�dKc_4hfJd
+      // 複数の予約が見つかった場合、全て削除
       await Promise.all(
-        querySnapshot.docs.map(docSnapshot => 
+        querySnapshot.docs.map((docSnapshot: any) => 
           deleteDoc(doc(db, 'bookings', docSnapshot.id))
         )
       );
       
-      console.log('�L����U�~W_');
+      // キャッシュを無効化
+      cachedBookings = null;
+      cacheTimestamp = 0;
+      
+      console.log('予約がキャンセルされました');
       return true;
-    } catch (error) {
-      console.error('�n����k1WW~W_:', error);
-      throw new Error('�n����k1WW~W_');
+    } catch (error: any) {
+      console.error('予約のキャンセルに失敗しました:', error);
+      throw new Error('予約のキャンセルに失敗しました');
     }
   }
 };

@@ -25,14 +25,14 @@ export const BookingGrid: React.FC<BookingGridProps> = ({
       // max-h-[calc(100vh-10rem)] は、ヘッダーとフッターの高さ、およびメインコンテンツのパディングを考慮した
       // 最大高さです。この値を調整することで、コンテンツが画面に収まるように試みます。
       // ただし、時間枠の数が非常に多い場合は、ページ全体がスクロールする可能性があります。
-      className="bg-white py-6 p-2 rounded-lg
+      className="bg-white py-4 p-2 rounded-lg
                  max-w-4xl mx-auto h-auto max-h-[calc(100vh-10rem)]"
     >
       {/* 日付表示 */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+      <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
         {schedule.date} の予約状況
       </h2>
-      <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">予約の10分前までにお越しください</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">予約の10分前までにお越しください</h2>
       <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-1 justify-items-center">
         {/* スケジュール内の各スロットをマップしてBookingSlotを描画 */}
         {schedule.slots.map((slot: TimeSlot) => (
