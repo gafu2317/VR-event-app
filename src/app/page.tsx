@@ -1,7 +1,7 @@
 "use client";
 
 import { BookingGrid } from '@/components/booking/BookingGrid';
-import { Schedule, TimeSlot } from '@/lib/types';
+import { useBookingContext } from '@/contexts/BookingContext';
 
 
 
@@ -50,11 +50,28 @@ const initialSchedule: Schedule[] = [
 
 // --- メインコンポーネント ---
 export default function Home() {
+  const { schedules, loading, error } = useBookingContext();
 
+  const handleSlotClick = async (dateTime: string) => {
+    // 後でFirebase連携時に実装
+    console.log('予約枠がクリックされました:', dateTime);
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">読み込み中...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-8 text-red-600">{error}</div>;
+  }
 
   return (
-    <div>
-      <BookingGrid schedule={initialSchedule[0]} isAdminMode={false} onSlotClick={() => {}} />
+    <div className="bg-gray-50 p-4">
+      <BookingGrid 
+        schedule={schedules[0]} 
+        isAdminMode={false} 
+        onSlotClick={handleSlotClick} 
+      />
     </div>
   );
 }

@@ -7,7 +7,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
-import Header from "@/components/Header"; // Headerを直接インポート
+import Header from "@/components/Header";
+import { BookingProvider } from "@/contexts/BookingContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,15 +36,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        {/* Headerを直接レンダリングします。Propsは不要になりました。 */}
-        <Header />
+        <BookingProvider>
+          <Header />
 
-        {/* main タグに pt-16 (padding-top: 4rem) を追加し、固定ヘッダーの下にコンテンツが潜り込まないようにします。 */}
-        <main className="flex-grow container mx-auto p-4 pt-16">
-          {children}
-        </main>
+          {/* main タグに pt-16 (padding-top: 4rem) を追加し、固定ヘッダーの下にコンテンツが潜り込まないようにします。 */}
+          <main className="flex-grow container mx-auto pt-16">
+            {children}
+          </main>
 
-        <Footer />
+          <Footer />
+        </BookingProvider>
       </body>
     </html>
   );
