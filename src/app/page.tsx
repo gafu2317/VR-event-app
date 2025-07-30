@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from 'react';
 import { BookingGrid } from '@/components/booking/BookingGrid';
 import { useBookingContext } from '@/contexts/BookingContext';
+import { BookingModal } from '@/components/modals/BookingModal';
+import { CancelModal } from '@/components/modals/CancelModal';
 
 
 
@@ -51,46 +54,32 @@ import { useBookingContext } from '@/contexts/BookingContext';
 // --- メインコンポーネント ---
 export default function Home() {
   const { schedules, loading, error, createBooking, cancelBooking } = useBookingContext();
+  
+  // モーダル状態管理
+  const [bookingModal, setBookingModal] = useState({ isOpen: false, dateTime: '', timeSlot: '' });
+  const [cancelModal, setCancelModal] = useState({ isOpen: false, dateTime: '', timeSlot: '' });
 
-  const handleSlotClick = async (dateTime: string) => {
+  const handleSlotClick = (dateTime: string) => {
     const slot = schedules[0]?.slots.find(s => s.dateTime === dateTime);
+    const timeSlot = slot?.time || '';
     
     if (slot?.isBooked) {
-      // 予約済みの場合：キャンセル処理
-      const bookerName = prompt('キャンセルする予約者名を入力してください:');
-      if (!bookerName?.trim()) {
-        return;
-      }
-
-      const confirmCancel = confirm(`${bookerName}さんの予約をキャンセルしますか？`);
-      if (!confirmCancel) {
-        return;
-      }
-
-      try {
-        const success = await cancelBooking(bookerName.trim(), dateTime);
-        if (success) {
-          alert('予約がキャンセルされました！');
-        } else {
-          alert('指定された予約者名の予約が見つかりませんでした。');
-        }
-      } catch (error) {
-        alert('キャンセルに失敗しました。もう一度お試しください。');
-      }
+      // 予約済みの場合：キャンセルモーダルを開く
+      setCancelModal({ isOpen: true, dateTime, timeSlot });
     } else {
-      // 空き枠の場合：予約作成処理
-      const bookerName = prompt('予約者名を入力してください:');
-      if (!bookerName?.trim()) {
-        return;
-      }
-
-      try {
-        await createBooking(bookerName.trim(), dateTime);
-        alert('予約が完了しました！');
-      } catch (error) {
-        alert('予約に失敗しました。もう一度お試しください。');
-      }
+      // 空き枠の場合：予約モーダルを開く
+      setBookingModal({ isOpen: true, dateTime, timeSlot });
     }
+  };
+
+  // 予約作成処理
+  const handleBookingConfirm = async (bookerName: string) => {
+    await createBooking(bookerName, bookingModal.dateTime);
+  };
+
+  // 予約キャンセル処理
+  const handleCancelConfirm = async (bookerName: string) => {
+    return await cancelBooking(bookerName, cancelModal.dateTime);
   };
 
   if (loading) {
@@ -133,6 +122,24 @@ export default function Home() {
         schedule={schedules[0]} 
         isAdminMode={false} 
         onSlotClick={handleSlotClick} 
+      />
+      
+      {/* 予約モーダル */}
+      <BookingModal
+        isOpen={bookingModal.isOpen}
+        onClose={() => setBookingModal({ isOpen: false, dateTime: '', timeSlot: '' })}
+        onConfirm={handleBookingConfirm}
+        timeSlot={bookingModal.timeSlot}
+        loading={loading}
+      />
+      
+      {/* キャンセルモーダル */}
+      <CancelModal
+        isOpen={cancelModal.isOpen}
+        onClose={() => setCancelModal({ isOpen: false, dateTime: '', timeSlot: '' })}
+        onConfirm={handleCancelConfirm}
+        timeSlot={cancelModal.timeSlot}
+        loading={loading}
       />
     </div>
   );

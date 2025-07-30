@@ -52,16 +52,17 @@ export const BookingSlot: React.FC<BookingSlotProps> = ({
       {/* 時間表示 */}
       <span className="text-base font-semibold mb-0.5">{time}</span> {/* フォントサイズも調整 */}
 
-      {/* 空きか予約済みかの表示 */}
+      {/* 管理者モードと通常モードで表示を分岐 */}
       {isBooked ? (
-        <span className="text-xs font-medium">予約済み</span> 
+        isAdminMode && bookerName ? (
+          // 管理者モード：予約者名のみ表示
+          <span className="text-xs font-medium text-center">{bookerName}</span>
+        ) : (
+          // 通常モード：「予約済み」表示
+          <span className="text-xs font-medium">予約済み</span>
+        )
       ) : (
         <span className="text-xs font-medium">空き</span> 
-      )}
-
-      {/* 管理者モードで予約済みの場合のみ予約者名を表示 */}
-      {isBooked && isAdminMode && bookerName && (
-        <span className="text-xxs mt-0.5 text-red-600">予約者: {bookerName}</span> 
       )}
     </div>
   );
