@@ -26,7 +26,7 @@ export const BookingGrid: React.FC<BookingGridProps> = ({
       // 最大高さです。この値を調整することで、コンテンツが画面に収まるように試みます。
       // ただし、時間枠の数が非常に多い場合は、ページ全体がスクロールする可能性があります。
       className="bg-white py-4 p-2 rounded-lg
-                 max-w-4xl mx-auto h-auto max-h-[calc(100vh-10rem)]"
+                 max-w-4xl mx-auto"
     >
       {/* 日付表示 */}
       <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
