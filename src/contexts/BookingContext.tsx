@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Booking, Schedule, TimeSlot } from '@/lib/types';
 import { bookingService } from '@/lib/firebase';
 
@@ -24,7 +24,7 @@ interface BookingProviderProps {
 
 const generateTimeSlots = (dateStr: string, startHour: string, endHour: string): TimeSlot[] => {
   const slots: TimeSlot[] = [];
-  let currentTime = new Date(`${dateStr}T${startHour}:00`);
+  const currentTime = new Date(`${dateStr}T${startHour}:00`);
   const endTime = new Date(`${dateStr}T${endHour}:00`);
 
   while (currentTime < endTime) {
@@ -59,12 +59,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateBookings = (newBookings: Booking[]) => {
-    setBookings(newBookings);
-    updateScheduleWithBookings(newBookings);
-  };
-
-  const updateScheduleWithBookings = (bookingData: Booking[]) => {
+  const updateScheduleWithBookings = useCallback((bookingData: Booking[]) => {
     const updatedSchedules = initialSchedules.map(schedule => ({
       ...schedule,
       slots: schedule.slots.map(slot => {
@@ -78,22 +73,29 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
       })
     }));
     setSchedules(updatedSchedules);
-  };
+  }, []);
 
-  const refreshBookings = async () => {
+  const updateBookings = useCallback((newBookings: Booking[]) => {
+    setBookings(newBookings);
+    updateScheduleWithBookings(newBookings);
+  }, [updateScheduleWithBookings]);
+
+
+  const refreshBookings = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       console.log('予約データを更新中...');
       const allBookings = await bookingService.getAll();
       updateBookings(allBookings);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('予約データの読み込みエラー:', err);
       
       // エラーメッセージを詳細に表示
-      if (err?.message?.includes('タイムアウト')) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes('タイムアウト')) {
         setError('サーバーの応答が遅すぎます。ネットワーク接続を確認してください。');
-      } else if (err?.message?.includes('permission')) {
+      } else if (errorMessage.includes('permission')) {
         setError('データベースへのアクセス権限がありません。');
       } else {
         setError('予約データの読み込みに失敗しました。Firebase設定を確認してください。');
@@ -101,7 +103,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     } finally {
       setLoading(false);
     }
-  };
+  }, [updateBookings]);
 
   const createBooking = async (bookerName: string, bookingTime: string) => {
     setLoading(true);
@@ -109,7 +111,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     try {
       await bookingService.create(bookerName, bookingTime);
       await refreshBookings(); // 作成後に最新データを取得
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('予約の作成に失敗しました');
       console.error(err);
       throw err; // UIでエラーハンドリングするため再throw
@@ -127,7 +129,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
         await refreshBookings(); // キャンセル後に最新データを取得
       }
       return success;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('予約のキャンセルに失敗しました');
       console.error(err);
       return false;
@@ -144,7 +146,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     }, 100);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [refreshBookings]);
 
   const value: BookingContextType = {
     bookings,

@@ -37,7 +37,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
 // Firestoreキャッシュを有効化（パフォーマンス向上）
-import { enableNetwork, disableNetwork } from 'firebase/firestore';
+import { enableNetwork } from 'firebase/firestore';
 
 // 接続を事前に確立
 enableNetwork(db).catch(console.error);
@@ -74,11 +74,11 @@ export const bookingService = {
       const querySnapshot = await Promise.race([
         getDocs(bookingsCollection),
         timeoutPromise
-      ]) as any;
+      ]);
       
       console.timeEnd('Firestore取得時間');
       
-      const bookings = querySnapshot.docs.map((doc: any) => ({
+      const bookings = (querySnapshot as { docs: { id: string; data: () => { bookerName: string; bookingTime: string } }[] }).docs.map((doc) => ({
         id: doc.id,
         bookerName: doc.data().bookerName,
         bookingTime: doc.data().bookingTime,
@@ -90,9 +90,10 @@ export const bookingService = {
       
       console.log('取得した予約データ:', bookings);
       return bookings;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('予約データの取得に失敗しました:', error);
-      if (error?.message?.includes('タイムアウト')) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('タイムアウト')) {
         throw new Error('サーバーの応答が遅すぎます。しばらくしてから再試行してください。');
       }
       throw new Error('予約データの取得に失敗しました');
@@ -115,7 +116,7 @@ export const bookingService = {
       
       console.log('予約が作成されました:', docRef.id);
       return docRef.id;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('予約の作成に失敗しました:', error);
       throw new Error('予約の作成に失敗しました');
     }
@@ -139,7 +140,7 @@ export const bookingService = {
 
       // 複数の予約が見つかった場合、全て削除
       await Promise.all(
-        querySnapshot.docs.map((docSnapshot: any) => 
+        querySnapshot.docs.map((docSnapshot) => 
           deleteDoc(doc(db, 'bookings', docSnapshot.id))
         )
       );
@@ -150,7 +151,7 @@ export const bookingService = {
       
       console.log('予約がキャンセルされました');
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('予約のキャンセルに失敗しました:', error);
       throw new Error('予約のキャンセルに失敗しました');
     }
