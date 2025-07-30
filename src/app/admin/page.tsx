@@ -6,53 +6,7 @@ import { useBookingContext } from '@/contexts/BookingContext';
 import { BookingModal } from '@/components/modals/BookingModal';
 import { CancelModal } from '@/components/modals/CancelModal';
 
-
-
-
-// // --- 初期データ ---
-// const generateTimeSlots = (dateStr: string, startHour: string, endHour: string): TimeSlot[] => {
-//   const slots: TimeSlot[] = [];
-
-//   // Dateオブジェクトは日付と時刻の両方を持つため、正確な日時で初期化します。
-//   // 例: "2025-08-16T09:00:00"
-//   let currentTime = new Date(`${dateStr}T${startHour}:00`);
-//   const endTime = new Date(`${dateStr}T${endHour}:00`);
-
-//   // 終了時刻になるまで15分ずつ時間を進めてスロットを生成します。
-//   while (currentTime < endTime) {
-//     // UI表示用の時間 (例: "09:00")
-//     const timeString = currentTime.toTimeString().substring(0, 5);
-//     // 予約データと紐付けるための正確な日時情報 (ISO 8601形式)
-//     const dateTimeString = currentTime.toISOString();
-
-//     slots.push({
-//       time: timeString,
-//       dateTime: dateTimeString,
-//       isBooked: false, // 初期状態では予約済みではない
-//       // bookingId と bookerName は予約時に設定されるため、ここでは含めない
-//     });
-
-//     // 次の15分に進めます
-//     currentTime.setMinutes(currentTime.getMinutes() + 15);
-//   }
-//   return slots;
-// };
-
-
-// const initialSchedule: Schedule[] = [
-//   {
-//     date: '2025年8月16日',
-//     slots: generateTimeSlots('2025-08-16','10:00', '16:00'),
-//   },
-//   {
-//     date: '2025年8月17日',
-//     slots: generateTimeSlots('2025-08-17','09:30', '16:00'),
-//   },
-// ];
-
-
-// --- メインコンポーネント ---
-export default function Home() {
+export default function AdminPage() {
   const { schedules, loading, error, createBooking, cancelBooking } = useBookingContext();
   
   // モーダル状態管理
@@ -110,17 +64,18 @@ export default function Home() {
   return (
     <div className="bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto mb-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-          <h5 className="font-semibold text-blue-800 mb-2">使い方</h5>
-          <ul className="text-blue-700 space-y-1">
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm">
+          <h5 className="font-semibold text-orange-800 mb-2">管理者モード</h5>
+          <ul className="text-orange-700 space-y-1">
             <li>• <strong>予約</strong>：空き枠をタップして予約者名を入力</li>
             <li>• <strong>キャンセル</strong>：予約済み枠をタップして予約者名を入力</li>
+            <li>• 予約済み枠には予約者名が表示されます</li>
           </ul>
         </div>
       </div>
       <BookingGrid 
         schedule={schedules[0]} 
-        isAdminMode={false} 
+        isAdminMode={true} 
         onSlotClick={handleSlotClick} 
       />
       

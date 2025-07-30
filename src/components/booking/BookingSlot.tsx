@@ -55,8 +55,8 @@ export const BookingSlot: React.FC<BookingSlotProps> = ({
       {/* 管理者モードと通常モードで表示を分岐 */}
       {isBooked ? (
         isAdminMode && bookerName ? (
-          // 管理者モード：予約者名のみ表示
-          <span className="text-xs font-medium text-center">{bookerName}</span>
+          // 管理者モード：予約者名+様を表示
+          <span className="text-xs font-medium text-center">{bookerName}様</span>
         ) : (
           // 通常モード：「予約済み」表示
           <span className="text-xs font-medium">予約済み</span>

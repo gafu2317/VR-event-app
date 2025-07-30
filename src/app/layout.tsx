@@ -6,7 +6,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { BookingProvider } from "@/contexts/BookingContext";
 
@@ -34,17 +33,15 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
         <BookingProvider>
           <Header />
 
           {/* main タグに pt-16 (padding-top: 4rem) を追加し、固定ヘッダーの下にコンテンツが潜り込まないようにします。 */}
-          <main className="flex-grow container mx-auto pt-16">
+          <main className="pt-16 min-h-screen bg-gray-50">
             {children}
           </main>
-
-          <Footer />
         </BookingProvider>
       </body>
     </html>

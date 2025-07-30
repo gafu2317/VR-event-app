@@ -44,12 +44,12 @@ const generateTimeSlots = (dateStr: string, startHour: string, endHour: string):
 
 const initialSchedules: Schedule[] = [
   {
-    date: '2025年7月16日',
-    slots: generateTimeSlots('2025-07-16','10:00', '16:00'),
+    date: '2025年8月16日',
+    slots: generateTimeSlots('2025-08-16','10:00', '16:00'),
   },
   {
-    date: '2025年7月17日',
-    slots: generateTimeSlots('2025-07-17','09:30', '16:00'),
+    date: '2025年8月17日',
+    slots: generateTimeSlots('2025-08-17','09:30', '16:00'),
   },
 ];
 

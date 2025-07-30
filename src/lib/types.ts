@@ -6,7 +6,7 @@
 export interface Booking {
   id: string;          // 予約を一意に識別するID (FirestoreのドキュメントIDなど)
   bookerName: string;  // 予約者名
-  bookingTime: string; // 予約された具体的な日時 (例: "2025-07-08T10:00:00" または "2025-07-08 10:00")
+  bookingTime: string; // 予約された具体的な日時 (例: "2025-08-08T10:00:00" または "2025-08-08 10:00")
                        // ISO 8601形式の文字列を推奨します。
 }
 
@@ -17,7 +17,7 @@ export interface Booking {
  */
 export interface TimeSlot {
   time: string;        // 15分刻みの時間表示 (例: "10:00")
-  dateTime: string;    // その時間枠の完全な日時 (例: "2025-07-08T10:00:00")
+  dateTime: string;    // その時間枠の完全な日時 (例: "2025-08-08T10:00:00")
                        // 予約データと紐付けるための正確な日時情報
   isBooked: boolean;   // この時間枠が予約済みかどうか
   bookingId?: string;  // 予約済みの場合、その予約のID (キャンセル時に使用)
