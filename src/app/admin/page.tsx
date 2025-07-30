@@ -65,7 +65,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       {/* <div className="max-w-4xl mx-auto mb-4">
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm mb-3">
           <h5 className="font-semibold text-orange-800 mb-2">管理者モード</h5>
