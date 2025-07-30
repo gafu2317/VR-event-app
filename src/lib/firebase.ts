@@ -8,6 +8,7 @@ import {
   getDocs, 
   query, 
   where,
+  onSnapshot,
   Timestamp 
 } from 'firebase/firestore';
 import { Booking } from './types';
@@ -155,5 +156,38 @@ export const bookingService = {
       console.error('予約のキャンセルに失敗しました:', error);
       throw new Error('予約のキャンセルに失敗しました');
     }
+  },
+
+  // リアルタイムリスナーを設定
+  subscribeToBookings(callback: (bookings: Booking[]) => void): () => void {
+    console.log('Firestoreリアルタイムリスナーを開始...');
+    
+    const unsubscribe = onSnapshot(
+      bookingsCollection,
+      (querySnapshot) => {
+        try {
+          const bookings = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            bookerName: doc.data().bookerName,
+            bookingTime: doc.data().bookingTime,
+          } as Booking));
+          
+          console.log('リアルタイム更新:', bookings);
+          
+          // キャッシュを更新
+          cachedBookings = bookings;
+          cacheTimestamp = Date.now();
+          
+          callback(bookings);
+        } catch (error: unknown) {
+          console.error('リアルタイム更新エラー:', error);
+        }
+      },
+      (error: unknown) => {
+        console.error('リアルタイムリスナーエラー:', error);
+      }
+    );
+
+    return unsubscribe; // リスナーを解除するための関数を返す
   }
 };

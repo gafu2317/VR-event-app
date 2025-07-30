@@ -110,7 +110,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     setError(null);
     try {
       await bookingService.create(bookerName, bookingTime);
-      await refreshBookings(); // 作成後に最新データを取得
+      // リアルタイムリスナーが自動的にデータを更新するため、refreshBookingsは不要
     } catch (err: unknown) {
       setError('予約の作成に失敗しました');
       console.error(err);
@@ -125,9 +125,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     setError(null);
     try {
       const success = await bookingService.deleteByNameAndTime(bookerName, bookingTime);
-      if (success) {
-        await refreshBookings(); // キャンセル後に最新データを取得
-      }
+      // リアルタイムリスナーが自動的にデータを更新するため、refreshBookingsは不要
       return success;
     } catch (err: unknown) {
       setError('予約のキャンセルに失敗しました');
@@ -138,15 +136,27 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     }
   };
 
-  // 初期データ読み込み（遅延実行でUI表示を優先）
+  // リアルタイムリスナーを設定
   useEffect(() => {
-    // UIの初期表示を優先するため、少し遅延させる
-    const timer = setTimeout(() => {
-      refreshBookings();
-    }, 100);
+    console.log('リアルタイムリスナーを設定中...');
     
-    return () => clearTimeout(timer);
-  }, [refreshBookings]);
+    // リアルタイムリスナーを開始
+    const unsubscribe = bookingService.subscribeToBookings((newBookings) => {
+      console.log('リアルタイム更新を受信:', newBookings);
+      updateBookings(newBookings);
+      setLoading(false);
+      setError(null);
+    });
+
+    // 初期ローディング状態
+    setLoading(true);
+
+    // クリーンアップ関数でリスナーを解除
+    return () => {
+      console.log('リアルタイムリスナーを解除');
+      unsubscribe();
+    };
+  }, [updateBookings]);
 
   const value: BookingContextType = {
     bookings,
