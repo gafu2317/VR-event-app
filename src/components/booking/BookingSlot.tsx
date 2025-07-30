@@ -37,9 +37,9 @@ export const BookingSlot: React.FC<BookingSlotProps> = ({
       // cursor-pointer: クリック可能であることを示すカーソル
       // transition: ホバーエフェクトのためのトランジション
       className={`
-        flex flex-col items-center justify-center p-2 m-1 mb-4
+        flex flex-col items-center justify-center p-2 m-1 mb-3
         rounded-md border-2 shadow-sm
-        w-20 h-16 sm:w-20 sm:h-16 md:w-24 md:h-20 lg:w-32 lg:h-24
+        w-20 h-14 sm:w-22 sm:h-16 md:w-24 md:h-18 lg:w-28 lg:h-20
         transition-all duration-200 ease-in-out
         cursor-pointer
         ${isBooked
@@ -50,7 +50,7 @@ export const BookingSlot: React.FC<BookingSlotProps> = ({
       onClick={handleClick}
     >
       {/* 時間表示 */}
-      <span className="text-base font-semibold mb-0.5">{time}</span> {/* フォントサイズも調整 */}
+      <span className="text-sm font-semibold mb-0.5">{time}</span>
 
       {/* 管理者モードと通常モードで表示を分岐 */}
       {isBooked ? (

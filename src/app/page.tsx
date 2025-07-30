@@ -58,9 +58,12 @@ export default function Home() {
   // モーダル状態管理
   const [bookingModal, setBookingModal] = useState({ isOpen: false, dateTime: '', timeSlot: '' });
   const [cancelModal, setCancelModal] = useState({ isOpen: false, dateTime: '', timeSlot: '' });
+  
+  // 日付選択状態管理
+  const [selectedDateIndex, setSelectedDateIndex] = useState(0);
 
   const handleSlotClick = (dateTime: string) => {
-    const slot = schedules[0]?.slots.find(s => s.dateTime === dateTime);
+    const slot = schedules[selectedDateIndex]?.slots.find(s => s.dateTime === dateTime);
     const timeSlot = slot?.time || '';
     
     if (slot?.isBooked) {
@@ -110,7 +113,7 @@ export default function Home() {
   return (
     <div className="bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto mb-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm mb-3">
           <h5 className="font-semibold text-blue-800 mb-2">使い方</h5>
           <ul className="text-blue-700 space-y-1">
             <li>• <strong>予約</strong>：空き枠をタップして予約者名を入力</li>
@@ -118,8 +121,28 @@ export default function Home() {
           </ul>
         </div>
       </div>
+      
+      {/* 日付切り替えタブ - グリッドのすぐ上 */}
+      <div className="max-w-4xl mx-auto mb-2">
+        <div className="flex bg-gray-100 rounded-t-lg overflow-hidden shadow-sm">
+          {schedules.map((schedule, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedDateIndex(index)}
+              className={`flex-1 py-2 px-3 text-xs font-medium transition-all ${
+                selectedDateIndex === index
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-blue-600'
+              }`}
+            >
+              {schedule.date}
+            </button>
+          ))}
+        </div>
+      </div>
+      
       <BookingGrid 
-        schedule={schedules[0]} 
+        schedule={schedules[selectedDateIndex]} 
         isAdminMode={false} 
         onSlotClick={handleSlotClick} 
       />
