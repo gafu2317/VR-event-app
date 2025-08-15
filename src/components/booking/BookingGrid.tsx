@@ -32,6 +32,7 @@ export const BookingGrid: React.FC<BookingGridProps> = ({
       <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
         {schedule.date} の予約状況
       </h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">予約時刻の10分前に受付を開始します</h2>
       <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">予約の10分前までにお越しください</h2>
       <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-1 justify-items-center">
         {/* スケジュール内の各スロットをマップしてBookingSlotを描画 */}
